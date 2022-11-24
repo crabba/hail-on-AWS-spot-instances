@@ -1,19 +1,20 @@
 #!/bin/bash
 set -e
 
-# This file is available in public bucket: s3://hms-dbmi-docs/hail_bootstrap/bootstrap_python36.sh
+# 221123 crabba My fork of this script, updated as python36 is not available
+# This file is available in public bucket: s3://hms-dbmi-docs/hail_bootstrap/bootstrap_python3.sh
 
 export PATH=$PATH:/usr/local/bin
 
 cd $HOME
 mkdir -p $HOME/.ssh/id_rsa
-sudo yum install python36 python36-devel python36-setuptools -y 
-sudo easy_install pip
-sudo python3 -m pip install --upgrade pip
+sudo yum install -y python3 python3-devel python3-setuptools python3-pip
+# sudo easy_install pip
+# sudo python3 -m pip install --upgrade pip
 
 if grep isMaster /mnt/var/lib/info/instance.json | grep true; then
     sudo yum install g++ cmake git -y
-    sudo yum install gcc72-c++ -y # Fixes issue with c++14 incompatibility in Amazon Linux
+    sudo yum install gcc-c++ -y # Fixes issue with c++14 incompatibility in Amazon Linux
     sudo yum install lz4 lz4-devel -y # Fixes issue of missing lz4
 	# Master node: Install all
 	WHEELS="pyserial
@@ -51,6 +52,7 @@ fi
 
 for WHEEL_NAME in $WHEELS
 do
+	echo "Installing pip package: ${WHEEL_NAME}"
 	sudo python3 -m pip install $WHEEL_NAME
 done
 

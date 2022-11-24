@@ -6,14 +6,15 @@ config:
   REGION: "us-east-1"
   MASTER_INSTANCE_TYPE: "m4.large"
   WORKER_INSTANCE_TYPE: "r4.4xlarge"
-  WORKER_COUNT: "4" # Number of worker nodes
+  WORKER_COUNT: 2 # Number of worker nodes
   WORKER_BID_PRICE: "0.44" # Required for spot instances
   MASTER_HD_SIZE: "50" # Size in GB - For large data sets, more HD space may be required
   WORKER_HD_SIZE: "150" # Size in GB - For large data sets, more HD space may be required
   SUBNET_ID: "" # This field can be either left blank or for further security you can specify your private subnet ID in the form: subnet-1a2b3c4d
-  S3_BUCKET: "s3n://my-s3-bucket/" # Specify your S3 bucket for EMR log storage
-  KEY_NAME: "my-key" # Input your key name ONLY! DO NOT include the .pem extension
-  PATH_TO_KEY: "/full-path-to/my-key/" # Full path to the FOLDER where the .pem file resides
-  WORKER_SECURITY_GROUP: "" # If empty creates a new group by default. You can also add a specific SG. See the SG link in the FAQs section
-  MASTER_SECURITY_GROUP: "" # If empty creates a new group by default. You can also add a specific SG. See the SG link in the FAQs section
+  S3_URI: "s3://my-s3-bucket/my/path/" # URI of S3 bucket and path for EMR log storage
+  KEY_NAME: "/path/to/my-key.pem" # Fully-qualified path to PEM key to use, including file suffix
+  WORKER_SECURITY_GROUP: "" # ID of security group to use. If empty creates a new group by default. 
+  MASTER_SECURITY_GROUP: "" # ID of security group to use. If empty creates a new group by default.
   HAIL_VERSION: "current" # Specify a git hash version (the first 7-12 characters will suffice) to install a specific commit/version. When left empty or "current" will install the latest version of Hail available in the repo
+  EMR_RELEASE_LABEL: "emr-5.23.0" # EMR version
+  BOOTSTRAP_ACTIONS: "s3://hms-dbmi-docs/hail_bootstrap/bootstrap_python36.sh" # Bootstrap actions script.  Note default tries to install python36, which will fail

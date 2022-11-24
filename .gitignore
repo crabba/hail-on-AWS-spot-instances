@@ -1,0 +1,3 @@
+# Omit all config files except example
+src/config*yaml
+!src/config_EMR_spot.yaml
