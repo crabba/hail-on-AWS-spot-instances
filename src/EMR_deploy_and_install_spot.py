@@ -35,6 +35,7 @@ PATH = os.path.dirname(os.path.abspath(__file__))
 config_file = os.path.join(PATH, args.config)
 logging.info(f"config arg is {config_file}")
 c = yaml.load(open(config_file), Loader)
+config = c['config']
 
 def default_iam_roles_exists():
 	paginator = iam.get_paginator('list_roles')
@@ -67,28 +68,29 @@ ensure_default_iam_roles()
 # command=' \
 # 	aws emr create-cluster \
 # 	--applications Name=Hadoop Name=Spark \
-# 	--tags \'project='+c['config']['PROJECT_TAG']+'\' \'Owner='+c['config']['OWNER_TAG']+'\' \'Name='+c['config']['EC2_NAME_TAG']+'\' \
-# 	--ec2-attributes \'{"KeyName":"'+c['config']['KEY_NAME']+'","InstanceProfile":"EMR_EC2_DefaultRole","SubnetId":"'+c['config']['SUBNET_ID']+'","EmrManagedSlaveSecurityGroup":"'+c['config']['WORKER_SECURITY_GROUP']+'","EmrManagedMasterSecurityGroup":"'+c['config']['MASTER_SECURITY_GROUP']+'"}\' \
+# 	--tags \'project='+config['PROJECT_TAG']+'\' \'Owner='+config['OWNER_TAG']+'\' \'Name='+config['EC2_NAME_TAG']+'\' \
+# 	--ec2-attributes \'{"KeyName":"'+config['KEY_NAME']+'","InstanceProfile":"EMR_EC2_DefaultRole","SubnetId":"'+config['SUBNET_ID']+'","EmrManagedSlaveSecurityGroup":"'+config['WORKER_SECURITY_GROUP']+'","EmrManagedMasterSecurityGroup":"'+config['MASTER_SECURITY_GROUP']+'"}\' \
 # 	--service-role EMR_DefaultRole \
 # 	--release-label emr-5.23.0 \
-# 	--log-uri \''+c['config']['S3_URI']+'\' \
-# 	--name \''+c['config']['EMR_CLUSTER_NAME']+'\' \
-# 	--instance-groups \'[{"InstanceCount":1,"EbsConfiguration":{"EbsBlockDeviceConfigs":[{"VolumeSpecification":{"SizeInGB":'+c['config']['MASTER_HD_SIZE']+',"VolumeType":"gp2"},"VolumesPerInstance":1}]},"InstanceGroupType":"MASTER","InstanceType":"'+c['config']['MASTER_INSTANCE_TYPE']+'","Name":"Master-Instance"},{"InstanceCount":'+c['config']['WORKER_COUNT']+',"BidPrice":"'+c['config']['WORKER_BID_PRICE']+'","EbsConfiguration":{"EbsBlockDeviceConfigs":[{"VolumeSpecification":{"SizeInGB":'+c['config']['WORKER_HD_SIZE']+',"VolumeType":"gp2"},"VolumesPerInstance":1}]},"InstanceGroupType":"CORE","InstanceType":"'+c['config']['WORKER_INSTANCE_TYPE']+'","Name":"Core-Group"}]\' \
+# 	--log-uri \''+config['S3_URI']+'\' \
+# 	--name \''+config['EMR_CLUSTER_NAME']+'\' \
+# 	--instance-groups \'[{"InstanceCount":1,"EbsConfiguration":{"EbsBlockDeviceConfigs":[{"VolumeSpecification":{"SizeInGB":'+config['MASTER_HD_SIZE']+',"VolumeType":"gp2"},"VolumesPerInstance":1}]},"InstanceGroupType":"MASTER","InstanceType":"'+config['MASTER_INSTANCE_TYPE']+'","Name":"Master-Instance"},{"InstanceCount":'+config['WORKER_COUNT']+',"BidPrice":"'+config['WORKER_BID_PRICE']+'","EbsConfiguration":{"EbsBlockDeviceConfigs":[{"VolumeSpecification":{"SizeInGB":'+config['WORKER_HD_SIZE']+',"VolumeType":"gp2"},"VolumesPerInstance":1}]},"InstanceGroupType":"CORE","InstanceType":"'+config['WORKER_INSTANCE_TYPE']+'","Name":"Core-Group"}]\' \
 # 	--configurations \'[{"Classification":"spark","Properties":{"maximizeResourceAllocation":"true"}},{"Classification":"yarn-site","Properties":{"yarn.nodemanager.vmem-check-enabled":"false"},"Configurations":[]}]\' \
 # 	--auto-scaling-role EMR_AutoScaling_DefaultRole \
 # 	--ebs-root-volume-size 32 \
 # 	--scale-down-behavior TERMINATE_AT_TASK_COMPLETION \
-# 	--region '+c['config']['REGION']+' \
+# 	--region '+config['REGION']+' \
 # 	--bootstrap-actions Path="s3://hms-dbmi-docs/hail_bootstrap/bootstrap_python36.sh" \
 # '
 
+key_name = os.path.splitext(os.path.basename(config['KEY_NAME']))[0]
 ec2_attributes = json.dumps(
 	{
-		"KeyName":  os.path.splitext(os.path.basename(c['config']['KEY_NAME']))[0],
+		"KeyName":  key_name,
 		"InstanceProfile": 'EMR_EC2_DefaultRole', 
-		"SubnetId": c['config']['SUBNET_ID'],
-		"EmrManagedSlaveSecurityGroup": c['config']['WORKER_SECURITY_GROUP'],
-		"EmrManagedMasterSecurityGroup": c['config']['MASTER_SECURITY_GROUP']
+		"SubnetId": config['SUBNET_ID'],
+		"EmrManagedSlaveSecurityGroup": config['WORKER_SECURITY_GROUP'],
+		"EmrManagedMasterSecurityGroup": config['MASTER_SECURITY_GROUP']
 	}
 )
 
@@ -118,7 +120,7 @@ instance_groups = json.dumps(
 				"EbsBlockDeviceConfigs": [
 					{
 						"VolumeSpecification": {
-							"SizeInGB": c['config']['MASTER_HD_SIZE'],
+							"SizeInGB": config['MASTER_HD_SIZE'],
 							"VolumeType": "gp2"
 						},
 						"VolumesPerInstance": 1,
@@ -126,17 +128,17 @@ instance_groups = json.dumps(
 				]
 			},
 			"InstanceGroupType": "MASTER",
-			"InstanceType": c['config']['MASTER_INSTANCE_TYPE'],
+			"InstanceType": config['MASTER_INSTANCE_TYPE'],
 			"Name": "Master-Instance",
 		},
 		{
-			"InstanceCount": c['config']['WORKER_COUNT'],
-			"BidPrice": c['config']['WORKER_BID_PRICE'],
+			"InstanceCount": config['WORKER_COUNT'],
+			"BidPrice": config['WORKER_BID_PRICE'],
 			"EbsConfiguration": {
 				"EbsBlockDeviceConfigs": [
 					{
 						"VolumeSpecification": {
-							"SizeInGB": c['config']['WORKER_HD_SIZE'],
+							"SizeInGB": config['WORKER_HD_SIZE'],
 							"VolumeType": "gp2"
 						},
 						"VolumesPerInstance": 1,
@@ -144,7 +146,7 @@ instance_groups = json.dumps(
 				]
 			},
 			"InstanceGroupType": "CORE",
-			"InstanceType": c['config']['WORKER_INSTANCE_TYPE'],
+			"InstanceType": config['WORKER_INSTANCE_TYPE'],
 			"Name": "Core-Group",
 		},
 	]
@@ -152,22 +154,21 @@ instance_groups = json.dumps(
 
 command = f" \
 aws emr create-cluster \
---release-label {c['config']['EMR_RELEASE_LABEL']} \
+--release-label {config['EMR_RELEASE_LABEL']} \
 --instance-groups '{instance_groups}' \
---log-uri {c['config']['S3_URI']} \
---name {c['config']['EMR_CLUSTER_NAME']} \
+--log-uri {config['S3_URI']} \
+--name {config['EMR_CLUSTER_NAME']} \
 --configurations '{configurations}' \
 --auto-scaling-role EMR_AutoScaling_DefaultRole \
 --ebs-root-volume-size 32 \
 --scale-down-behavior TERMINATE_AT_TASK_COMPLETION \
---region {c['config']['REGION']} \
---bootstrap-actions Path='{c['config']['BOOTSTRAP_ACTIONS']}' \
+--region {config['REGION']} \
+--bootstrap-actions Path='{config['BOOTSTRAP_ACTIONS']}' \
 --applications Name=Hadoop Name=Spark \
---tags project={c['config']['PROJECT_TAG']} Owner={c['config']['OWNER_TAG']} Name={c['config']['EC2_NAME_TAG']} \
+--tags project={config['PROJECT_TAG']} Owner={config['OWNER_TAG']} Name={config['EC2_NAME_TAG']} \
 --ec2-attributes '{ec2_attributes}' \
 --service-role EMR_DefaultRole \
 "
-
 
 logging.info(f"command:\n{command}")
 cluster_id_str = os.popen(command).read()
@@ -207,52 +208,55 @@ waiter.wait(
 details_EMR = emr.describe_cluster(ClusterId=cluster_id)
 master_dns = details_EMR.get('Cluster').get('MasterPublicDnsName')
 master_IP = re.sub("-",".",master_dns.split(".")[0].split("ec2-")[1])
-print('\nMaster DNS: '+ master_dns)
-
+print(f"Master DNS: {master_dns}")
 # print('Master IP: '+ master_IP+'\n')
-print('\nClusterId: '+cluster_id+'\n')
+print(f"ClusterId: {cluster_id}")
 
 # Copy the key into the master
-# command='scp -o \'StrictHostKeyChecking no\' -i '+c['config']['PATH_TO_KEY']+c['config']['KEY_NAME']+'.pem '+c['config']['PATH_TO_KEY']+c['config']['KEY_NAME']+'.pem hadoop@'+master_dns+':/home/hadoop/.ssh/id_rsa'
+# command='scp -o \'StrictHostKeyChecking no\' -i '+config['PATH_TO_KEY']+config['KEY_NAME']+'.pem '+config['PATH_TO_KEY']+config['KEY_NAME']+'.pem hadoop@'+master_dns+':/home/hadoop/.ssh/id_rsa'
 command = f" \
 scp \
 -o 'StrictHostKeyChecking no' \
--i {c['config']['KEY_NAME']} \
-{c['config']['KEY_NAME']} \
+-i {config['KEY_NAME']} \
+{config['KEY_NAME']} \
 hadoop@{master_dns}:/home/hadoop/.ssh/id_rsa \
 "
 os.system(command)
+
+# Copy the installation script into the master
+# command='scp -o \'StrictHostKeyChecking no\' -i '+config['PATH_TO_KEY']+config['KEY_NAME']+'.pem '+PATH+'/install_hail_and_python36.sh hadoop@'+master_dns+':/home/hadoop'
 print('Copying keys...')
-
-# Can we omit this script if not running Hail?
-
-# # Copy the installation script into the master
-# # command='scp -o \'StrictHostKeyChecking no\' -i '+c['config']['PATH_TO_KEY']+c['config']['KEY_NAME']+'.pem '+PATH+'/install_hail_and_python36.sh hadoop@'+master_dns+':/home/hadoop'
-# command = f" \
-# scp -o 'StrictHostKeyChecking no' \
-# -i {c['config']['KEY_NAME']} \
-# {PATH}/install_hail_and_python36.sh \
-# hadoop@{master_dns}:/home/hadoop \
-# "
-
+command = f" \
+scp -o 'StrictHostKeyChecking no' \
+-i {config['KEY_NAME']} \
+{PATH}/install_hail_and_python36.sh \
+hadoop@{master_dns}:/home/hadoop \
+"
 os.system(command)
 
 print('Installing software...')
 print('Allow 4-8 minutes for full installation')
 print('\n This is your Jupyter Lab link: '+ master_IP+':8192\n')
-key = paramiko.RSAKey.from_private_key_file(c['config']['KEY_NAME'])
+try:
+	key = paramiko.RSAKey.from_private_key_file(key_name)
+except Exception:
+	print(f"Oh no not RSA!")
+	pass
+	try:
+		key = paramiko.ed25519key.Ed25519Key.from_private_key_file(key_name)
+	except Exception:
+		print(f"Oh no not ed25519!")
+		pass
+
 client = paramiko.SSHClient()
 client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 client.connect(hostname=master_IP, username="hadoop", pkey=key)
 
-# -----------------------------------------------------------------------------
-# Omit if not running Hail
-# -----------------------------------------------------------------------------
 # Execute a command(cmd) after connecting/ssh to an instance
-# VERSION=c['config']['HAIL_VERSION']
-# command='./install_hail_and_python36.sh -v '+ VERSION
-# stdin, stdout, stderr = client.exec_command('cd /home/hadoop/')
-# stdin, stdout, stderr = client.exec_command(command)
+HAIL_VERSION = config['HAIL_VERSION']
+command = f'./install_hail_and_python36.sh -v {HAIL_VERSION}'
+os.system('cd /home/hadoop/')
+os.system(command)
 
 # close the client connection
 client.close()
