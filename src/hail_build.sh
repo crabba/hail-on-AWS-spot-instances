@@ -123,6 +123,7 @@ if [ "$IS_MASTER" = true ]; then
         # Compile with Spark
         if [ $SELECTED_VERSION -ge $GRADLE_DEPRECATION ];then
           echo "Compiling with Wheel..."
+          g++ --version
           make clean
           make wheel
           HAIL_WHEEL=`ls /opt/hail-on-AWS-spot-instances/src/hail/hail/build/deploy/dist | grep "whl"`
