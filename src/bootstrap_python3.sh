@@ -8,7 +8,7 @@ export PATH=$PATH:/usr/local/bin
 
 cd $HOME
 mkdir -p $HOME/.ssh/id_rsa
-sudo yum install -y python3 python3-devel python3-setuptools python3-pip
+sudo yum install -y python38 python38-devel python38-setuptools python38-pip
 # sudo easy_install pip
 # sudo python3 -m pip install --upgrade pip
 
