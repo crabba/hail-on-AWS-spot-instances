@@ -42,8 +42,8 @@ while [ "$1" != "" ]; do
 done
 
 OUTPUT_PATH=""
-HAIL_VERSION="master"
-SPARK_VERSION="2.4.0"
+HAIL_VERSION="main"
+SPARK_VERSION="3.1.2"
 COMPILE=true
 IS_MASTER=false
 GRADLE_DEPRECATION=1566593776
@@ -84,7 +84,7 @@ echo "Building Hail from $HASH"
 
 if [ "$IS_MASTER" = true ]; then
     sudo yum install g++ cmake git -y
-    sudo yum -y install gcc72-c++ # Fixes issue with c++14 incompatibility in Amazon Linux
+    # sudo yum -y install gcc72-c++ # Fixes issue with c++14 incompatibility in Amazon Linux
     sudo yum install -y lz4 # Fixes issue of missing lz4
     sudo yum install -y lz4-devel
     git clone https://github.com/broadinstitute/hail.git
@@ -120,7 +120,7 @@ if [ "$IS_MASTER" = true ]; then
      
 
     if [ "$COMPILE" = true ]; then
-        # Compile with Spark 2.4.0
+        # Compile with Spark
         if [ $SELECTED_VERSION -ge $GRADLE_DEPRECATION ];then
           echo "Compiling with Wheel..."
           make clean
@@ -128,7 +128,7 @@ if [ "$IS_MASTER" = true ]; then
           HAIL_WHEEL=`ls /opt/hail-on-AWS-spot-instances/src/hail/hail/build/deploy/dist | grep "whl"`
           sudo python3 -m pip install --no-deps /opt/hail-on-AWS-spot-instances/src/hail/hail/build/deploy/dist/$HAIL_WHEEL
 
-      else  ./gradlew -Dspark.version=$SPARK_VERSION -Dbreeze.version=0.13.2 -Dpy4j.version=0.10.6 shadowJar archiveZip
+      else  ./gradlew -Dspark.version=$SPARK_VERSION shadowJar archiveZip
             cp $PWD/build/distributions/hail-python.zip $HOME
             cp $PWD/build/libs/hail-all-spark.jar $HOME
         fi

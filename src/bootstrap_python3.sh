@@ -12,48 +12,36 @@ sudo yum install -y python3 python3-devel python3-setuptools python3-pip
 # sudo easy_install pip
 # sudo python3 -m pip install --upgrade pip
 
+PACKAGES=$(cat <<END
+argparse
+bokeh
+boto3
+ipywidgets
+numpy
+oauth
+pandas
+parsimonious
+pyserial
+python-magic
+requests
+scipy
+utils
+wheel
+END
+)
+
 if grep isMaster /mnt/var/lib/info/instance.json | grep true; then
-    sudo yum install g++ cmake git -y
-    sudo yum install gcc-c++ -y # Fixes issue with c++14 incompatibility in Amazon Linux
-    sudo yum install lz4 lz4-devel -y # Fixes issue of missing lz4
+    sudo yum install -y g++ cmake git gcc-c++
+    sudo yum install -y lz4 lz4-devel
 	# Master node: Install all
-	WHEELS="pyserial
-	oauth
-	argparse
-	parsimonious
-	wheel
-	pandas
-	utils
-	ipywidgets
-	numpy
-	scipy
-	bokeh
-	requests
-	boto3
-	python-magic
+	PACKAGES="${PACKAGES}
 	jupyterlab"
-else 
-	# Worker node: Install all but jupyter lab
-	WHEELS="pyserial
-	oauth
-	argparse
-	parsimonious
-	wheel
-	pandas
-	utils
-	ipywidgets
-	numpy
-	scipy
-	bokeh
-	requests
-	boto3
-	python-magic"
 fi
 
-for WHEEL_NAME in $WHEELS
+for package in $PACKAGES
 do
-	echo "Installing pip package: ${WHEEL_NAME}"
-	sudo python3 -m pip install $WHEEL_NAME
+	echo "Installing pip package: ${package}"
+	sudo python3 -m pip install $package
 done
 
 
