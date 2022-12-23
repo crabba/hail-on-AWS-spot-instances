@@ -83,7 +83,7 @@ done
 echo "Building Hail from $HASH"
 
 if [ "$IS_MASTER" = true ]; then
-    sudo yum install g++ cmake git -y
+    sudo yum install -y gcc-c++ cmake git
     # sudo yum -y install gcc72-c++ # Fixes issue with c++14 incompatibility in Amazon Linux
     sudo yum install -y lz4 # Fixes issue of missing lz4
     sudo yum install -y lz4-devel
